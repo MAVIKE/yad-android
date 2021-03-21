@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">YAD</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="loading_fragment">Loading user...</string>
+    <string name="fragment_loaded">Fragment loaded</string>
+    <string name="title_user_details">User</string>
+    <string name="user_name">"Username: "</string>
+    <string name="user_id_format">Id: %s</string>
+    <string name="user_name_format">Name: %s</string>
+    <string name="user_id">Id</string>
+</resources>

@@ -1,0 +1,4 @@
+include ':yaddeliveryboy'
+include ':yad_core'
+include ':app'
+rootProject.name = "YAD"
