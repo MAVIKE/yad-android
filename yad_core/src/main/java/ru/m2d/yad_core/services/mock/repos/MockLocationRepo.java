@@ -34,13 +34,13 @@ public class MockLocationRepo implements LocationRepo {
             location.latitude += 0.001;
         }
         else {
-            location = get_msk_coord();
+            location = getMskCoord();
         }
         return location;
     }
 
     // координаты центра Москвы
-    private Location get_msk_coord() {
+    private Location getMskCoord() {
         Location location = new Location();
         location.latitude = 55.753215;
         location.longitude = 37.622504;
@@ -48,13 +48,14 @@ public class MockLocationRepo implements LocationRepo {
     }
 
     private void updateLocation() {
-        data.postValue(findLocation());
-        try {
-            Thread.sleep(3000);
-            updateLocation();
-        }
-        catch(InterruptedException e){
-            System.out.println("Thread has been interrupted");
+        while (!Thread.interrupted()) {
+            data.postValue(findLocation());
+            try {
+                Thread.sleep(3000);
+            }
+            catch(InterruptedException e){
+                System.out.println("Thread has been interrupted");
+            }
         }
     }
 
