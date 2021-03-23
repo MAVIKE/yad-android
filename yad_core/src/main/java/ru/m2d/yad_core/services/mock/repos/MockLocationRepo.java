@@ -34,13 +34,13 @@ public class MockLocationRepo implements LocationRepo {
             location.latitude += 0.001;
         }
         else {
-            location = getMskCoord();
+            location = getMskLocation();
         }
         return location;
     }
 
     // координаты центра Москвы
-    private Location getMskCoord() {
+    private Location getMskLocation() {
         Location location = new Location();
         location.latitude = 55.753215;
         location.longitude = 37.622504;
