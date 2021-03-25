@@ -37,6 +37,8 @@ public class DeviceLocationRepo implements LocationRepo {
     // запушен ли startLoopUpdateLocation
     private boolean isLocationUpdating = false;
 
+    // получена ли когда-либо локация
+    private boolean isLocationReceivedOnce = false;
 
     private final FusedLocationProviderClient fusedLocationClient;
 
@@ -51,7 +53,6 @@ public class DeviceLocationRepo implements LocationRepo {
         @Override
         public void onLocationResult(@NotNull LocationResult locationResult) {
             android.location.Location location = locationResult.getLastLocation();
-            // Logic to handle location object
             Location loc = new Location();
             loc.latitude = location.getLatitude();
             loc.longitude = location.getLongitude();
@@ -77,19 +78,26 @@ public class DeviceLocationRepo implements LocationRepo {
 
     // начать обновлять геолокацию устройства
     public void startUpdateLocation(int timeUpdateLocation) {
-        // если время обновления > 0 и цикл обновления геолокации еще не запущен
-        if (timeUpdateLocation > 0 && !this.isLocationUpdating) {
-            this.timeUpdateLocation = timeUpdateLocation;
-            Expression expr = this::updatingLocation;
-            checkLocationRequesting(expr);
+        // проверяем, получалась ли когда-либо геолокация, если нет, то не запускаем обновление
+        // (в документации рекомендуют вначале вызвать хотя бы один раз геолокацию,
+        // а уже потом обновлять ее)
+        if (isLocationReceivedOnce) {
+            // если время обновления > 0 и цикл обновления геолокации еще не запущен
+            if (timeUpdateLocation > 0 && !this.isLocationUpdating) {
+                this.timeUpdateLocation = timeUpdateLocation;
+                Expression expr = this::updatingLocation;
+                checkLocationRequesting(expr);
+            }
         }
     }
 
     // прекратить обновлять значение геолокации
     // возвращает true, если геолокация перестала обновляться
     public void stopUpdateLocation() {
-        fusedLocationClient.removeLocationUpdates(this.locationUpdatingCallback);
-        this.isLocationUpdating = false;
+        if (this.isLocationUpdating) {
+            fusedLocationClient.removeLocationUpdates(this.locationUpdatingCallback);
+            this.isLocationUpdating = false;
+        }
     }
 
     // обновление геолокации
@@ -121,6 +129,8 @@ public class DeviceLocationRepo implements LocationRepo {
                     @Override
                     public void onSuccess(android.location.Location location) {
                         if (location != null) {
+                            isLocationReceivedOnce = true;
+
                             Location loc = new Location();
                             loc.latitude = location.getLatitude();
                             loc.longitude = location.getLongitude();
