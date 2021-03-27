@@ -37,9 +37,6 @@ public class DeviceLocationRepo implements LocationRepo {
     // запушен ли startLoopUpdateLocation
     private boolean isLocationUpdating = false;
 
-    // получена ли когда-либо локация
-    private boolean isLocationReceivedOnce = false;
-
     private final FusedLocationProviderClient fusedLocationClient;
 
     // указатель на activity, для которой будет получаться геолокация
@@ -77,18 +74,14 @@ public class DeviceLocationRepo implements LocationRepo {
     }
 
     // начать обновлять геолокацию устройства
-    public void startUpdateLocation(int timeUpdateLocation) {
-        // проверяем, получалась ли когда-либо геолокация, если нет, то не запускаем обновление
-        // (в документации рекомендуют вначале вызвать хотя бы один раз геолокацию,
-        // а уже потом обновлять ее)
-        if (isLocationReceivedOnce) {
-            // если время обновления > 0 и цикл обновления геолокации еще не запущен
-            if (timeUpdateLocation > 0 && !this.isLocationUpdating) {
-                this.timeUpdateLocation = timeUpdateLocation;
-                Expression expr = this::updatingLocation;
-                checkLocationRequesting(expr);
-            }
+    public LiveData<Location> startUpdateLocation(int timeUpdateLocation) {
+        // если время обновления > 0 и цикл обновления геолокации еще не запущен
+        if (!this.isLocationUpdating && timeUpdateLocation > 0) {
+            this.timeUpdateLocation = timeUpdateLocation;
+            Expression expr = this::updatingLocation;
+            checkLocationRequesting(expr);
         }
+        return data;
     }
 
     // прекратить обновлять значение геолокации
@@ -104,15 +97,34 @@ public class DeviceLocationRepo implements LocationRepo {
     // checkLocationRequesting, который осуществляет проверку)
     @SuppressLint("MissingPermission")
     private void updatingLocation() {
-        this.isLocationUpdating = true;
-        LocationRequest locationRequest = LocationRequest.create();
-        // задаем время обновления геолокации
-        locationRequest.setInterval(this.timeUpdateLocation);
-        // выставляем точность рассчета геолокации
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        this.fusedLocationClient.requestLocationUpdates(locationRequest,
-                this.locationUpdatingCallback,
-                Looper.getMainLooper());
+        // (в документации рекомендуют вначале вызвать хотя бы один раз геолокацию,
+        // а уже потом обновлять ее)
+        CancellationTokenSource cts = new CancellationTokenSource();
+        this.fusedLocationClient.getCurrentLocation(LocationRequest.PRIORITY_HIGH_ACCURACY, cts.getToken())
+                .addOnSuccessListener(this.activity, new OnSuccessListener<android.location.Location>() {
+                    // в случае неудачи ничего не делаем
+                    @Override
+                    public void onSuccess(android.location.Location location) {
+                        if (location != null) {
+                            // обновляем liveData
+                            Location loc = new Location();
+                            loc.latitude = location.getLatitude();
+                            loc.longitude = location.getLongitude();
+                            data.postValue(loc);
+
+                            // запускаем цикл обновления локации
+                            isLocationUpdating = true;
+                            LocationRequest locationRequest = LocationRequest.create();
+                            // задаем время обновления геолокации
+                            locationRequest.setInterval(timeUpdateLocation);
+                            // выставляем точность рассчета геолокации
+                            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                            fusedLocationClient.requestLocationUpdates(locationRequest,
+                                    locationUpdatingCallback,
+                                    Looper.getMainLooper());
+                        }
+                    }
+                });
     }
 
     // делает запрос на получение геолокации устройства и сохраняет ее в data в случае успеха
@@ -128,8 +140,6 @@ public class DeviceLocationRepo implements LocationRepo {
                     @Override
                     public void onSuccess(android.location.Location location) {
                         if (location != null) {
-                            isLocationReceivedOnce = true;
-
                             Location loc = new Location();
                             loc.latitude = location.getLatitude();
                             loc.longitude = location.getLongitude();
