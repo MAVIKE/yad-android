@@ -25,8 +25,13 @@ jobs:
         with: {java-version: 1.8}
       - name: Build APK
         run: ./gradlew assembleRelease
-      - name: Upload APK
+      - name: Upload main app APK
         uses: actions/upload-artifact@v2
         with:
-          name: app-release.apk
+          name: yad-release.apk
           path: app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Upload delivery boy app APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: yaboy-release.apk
+          path: yaddeliveryboy/build/outputs/apk/release/yaddeliveryboy-release-unsigned.apk
