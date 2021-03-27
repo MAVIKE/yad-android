@@ -5,16 +5,25 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with: {java-version: 1.8}
+      - name: Run linter
+        run: ./gradlew lint
+
   # Unit test application
   test:
     runs-on: ubuntu-20.04
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with: {java-version: 1.8}
       - name: Run unit-tests
         run: ./gradlew test
+    needs: lint
 
   # Build application
   build:
@@ -35,3 +44,4 @@ jobs:
         with:
           name: yaboy-release.apk
           path: yaddeliveryboy/build/outputs/apk/release/yaddeliveryboy-release-unsigned.apk
+    needs: test
