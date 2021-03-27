@@ -92,7 +92,6 @@ public class DeviceLocationRepo implements LocationRepo {
     }
 
     // прекратить обновлять значение геолокации
-    // возвращает true, если геолокация перестала обновляться
     public void stopUpdateLocation() {
         if (this.isLocationUpdating) {
             fusedLocationClient.removeLocationUpdates(this.locationUpdatingCallback);
