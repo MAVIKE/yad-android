@@ -27,10 +27,6 @@ import ru.m2d.yad_core.core.models.Location;
 import ru.m2d.yad_core.core.repos.LocationRepo;
 
 
-interface Expression {
-    void performTask();
-}
-
 public class DeviceLocationRepo implements LocationRepo {
     private final MutableLiveData<Location> data = new MutableLiveData<>();
 
@@ -66,10 +62,14 @@ public class DeviceLocationRepo implements LocationRepo {
     @Override
     public LiveData<Location> getLocation() {
         // передаем requestLocation в качестве параметра в checkLocationRequesting
-        Expression expr = this::requestLocation;
+        Runnable task = new Runnable() {
+            public void run() {
+                requestLocation();
+            }
+        };
         // проверка, есть ли права доступа у activity и включена ли геолокация
         // если нет, то не обновляем data
-        checkLocationRequesting(expr);
+        checkLocationRequesting(task);
         return data;
     }
 
@@ -78,8 +78,12 @@ public class DeviceLocationRepo implements LocationRepo {
         // если время обновления > 0 и цикл обновления геолокации еще не запущен
         if (!this.isLocationUpdating && timeUpdateLocation > 0) {
             this.timeUpdateLocation = timeUpdateLocation;
-            Expression expr = this::updatingLocation;
-            checkLocationRequesting(expr);
+            Runnable task = new Runnable() {
+                public void run() {
+                    updatingLocation();
+                }
+            };
+            checkLocationRequesting(task);
         }
         return data;
     }
@@ -151,7 +155,7 @@ public class DeviceLocationRepo implements LocationRepo {
 
     // проверяет, возможно ли получить геолокацию устройства
     // (разрешены ли права и включена ли геолокация на устройстве)
-    private void checkLocationRequesting(Expression onSuccessFunc) {
+    private void checkLocationRequesting(Runnable task) {
         // проверка, есть ли права доступа у activity
         if (ActivityCompat.checkSelfPermission(
                 this.activity, Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -163,7 +167,7 @@ public class DeviceLocationRepo implements LocationRepo {
                     .addOnSuccessListener(this.activity, new OnSuccessListener<LocationSettingsResponse>() {
                         @Override
                         public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                            onSuccessFunc.performTask();
+                            task.run();
                         }
                     });
         }
