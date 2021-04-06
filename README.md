@@ -19,6 +19,8 @@
 
 :phone: [iOS](https://github.com/MAVIKE/yad-ios)
 
+:paintbrush: [Design](https://www.figma.com/file/GF65UN8wsAICFzo49mIdSR/MAVIK)
+
 ## Запуск
 
 Запуск осуществляется с помощью встроенный средств [Android-studio](https://developer.android.google.cn/studio?hl=en)
