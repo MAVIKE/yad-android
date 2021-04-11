@@ -19,7 +19,7 @@
 
 :phone: [iOS](https://github.com/MAVIKE/yad-ios)
 
-:paintbrush: [Design](https://www.figma.com/file/GF65UN8wsAICFzo49mIdSR/MAVIK)
+:paintbrush: [Design](https://www.figma.com/file/GF65UN8wsAICFzo49mIdSR/MAVIK?node-id=0%3A1)
 
 ## Запуск
 
